@@ -24,6 +24,6 @@ const getStellarTransactions = async (sourceAccount) => {
     return transactions;
 }
 
-export default {
+module.exports = {
     getStellarTransactions
 }

@@ -48,8 +48,8 @@ const savePayments = (payments) => {
             .then(() => {
                 return Promise.all(payments.map(payment => payment.save()));
             })
-            .finally(() => Lock.releaseLock(serviceName))
-            .finally(() => model.closeDb())
+            .then(() => Lock.releaseLock(serviceName))
+            .then(() => model.closeDb())
             .catch(err => {
                 console.log('Unexpected error:', err);
                 process.exit(-1);
@@ -57,7 +57,7 @@ const savePayments = (payments) => {
     }
 }
 
-export default {
+module.exports = {
     formatPaymentForCoinPayments,
     formatPaymentForStellar,
     savePayments

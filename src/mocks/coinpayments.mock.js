@@ -65,7 +65,7 @@ const notCompleted =
  */
 const empty = {}
 
-export default {
+module.exports = {
     duplicate,
     notCompleted,
     empty

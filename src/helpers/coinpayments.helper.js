@@ -16,9 +16,9 @@ const getCoinPaymentTransactions = async (key, secret) => {
 
     const txList = await client.getTxList();
 
-    return await client.getTxMulti(txList);
+    return client.getTxMulti(txList);
 }
 
-export default {
+module.exports = {
     getCoinPaymentTransactions
 }

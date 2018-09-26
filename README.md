@@ -4,7 +4,10 @@ and from the CoinPayments API which accepts BTC and ETH. The information can lat
 
 Run tests: `npm run mock`
 
-Start app: `npm start` -> Will spawn nodemon -> Replace with a better solution and remove redundant Babel
+Start app: `npm start` with nodemon
+
+Start app with node: `npm run serve` (node src/app)
+
 
 ## Environment Variables
 `COINPAYMENT_KEY=<public-key>`
@@ -17,9 +20,8 @@ Start app: `npm start` -> Will spawn nodemon -> Replace with a better solution a
 
 `STELLAR_SRC_ACC=<source-acc>` Account that receives all Stellar XLM payments
 
-## Todo
-- Remove babel garbage
-- Standalone run command without nodemon
+`TIMEOUT=<milliseconds>` Time between running Coinpayments scanner and Stellar scanner
+
 
 
 

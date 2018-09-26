@@ -3,9 +3,9 @@ const Stellar = require('stellar-sdk');
 const mongoose = require('mongoose');
 const model = require('everlife-token-sale-model');
 
-import paymentsHelper from './helpers/payments.helper';
-import coinPaymentsHelper from './helpers/coinpayments.helper';
-import stellarPaymentsHelper from './helpers/stellarPayments.helper';
+const paymentsHelper = require('./helpers/payments.helper');
+const coinPaymentsHelper = require( './helpers/coinpayments.helper');
+const stellarPaymentsHelper = require('./helpers/stellarPayments.helper');
 
 const { Lock, User, Payment } = model;
 
@@ -13,7 +13,7 @@ const { Lock, User, Payment } = model;
  * Track all payments for CoinPayments API
  */
 async function trackCoinpayments() {
-    let transactionsObject = coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
+    let transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
 
     // Filter all pending and failed transactions
     Object.keys(transactionsObject).map((key, index) => {
@@ -122,4 +122,4 @@ async function trackStellarPayments() {
  * Starting point of application
  */
 trackCoinpayments();
-trackStellarPayments();
+setTimeout(trackStellarPayments, process.env.TIMEOUT);

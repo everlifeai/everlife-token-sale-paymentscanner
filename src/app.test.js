@@ -3,9 +3,9 @@ const Stellar = require('stellar-sdk');
 const mongoose = require('mongoose');
 const model = require('everlife-token-sale-model');
 
-import paymentsHelper from './helpers/payments.helper';
-import coinPaymentsMock from './mocks/coinpayments.mock';
-import stellarMock from './mocks/stellar.mock';
+const paymentsHelper = require('./helpers/payments.helper');
+const coinPaymentsMock = require('./mocks/coinpayments.mock');
+const stellarMock = require('./mocks/stellar.mock');
 
 const { Lock, User, Payment } = model;
 const serviceName = "myTokenSaleService";
@@ -208,9 +208,9 @@ function testStellarPayments() {
             }            
         })
 
-        .finally(() => Lock.releaseLock(serviceName))
-        .finally(() => model.closeDb())
-        .finally(() => {
+        .then(() => Lock.releaseLock(serviceName))
+        .then(() => model.closeDb())
+        .then(() => {
             if(error) {
                 console.log('\n-----\nOne of the tests has failed\n-----\n');
             } else {
@@ -283,9 +283,9 @@ function testCoinPayments() {
             }            
         })
 
-        .finally(() => Lock.releaseLock(serviceName))
-        .finally(() => model.closeDb())
-        .finally(() => {
+        .then(() => Lock.releaseLock(serviceName))
+        .then(() => model.closeDb())
+        .then(() => {
             if(error) {
                 console.log('\n-----\nOne of the tests has failed\n-----\n');
             } else {
@@ -305,4 +305,4 @@ function testCoinPayments() {
  * Then test StellarPayments functionality after delay of 5 seconds
  */
 testCoinPayments();
-setTimeout(testStellarPayments, 5000);
+setTimeout(testStellarPayments, process.env.TIMEOUT);
