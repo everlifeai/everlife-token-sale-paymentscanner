@@ -6,6 +6,13 @@ const rp = require('request-promise');
  * @param {string} sourceAccount 
  */
 const getStellarTransactions = async (sourceAccount) => {
+    let address;
+    if(Boolean(process.env.STELLAR_PUBLIC)) {
+        address = 'https://horizon.stellar.org';
+    } else {
+        address = 'https://horizon-testnet.stellar.org';
+    }
+
     let transactions;
     const options = {
         uri: `https://horizon-testnet.stellar.org/accounts/${sourceAccount}/transactions`,

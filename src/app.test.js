@@ -14,7 +14,7 @@ const serviceName = "myTokenSaleService";
  * Track all payments for CoinPayments API
  */
 async function trackCoinpayments(mock) {
-
+    let success = true;
     let transactionsObject = mock;
 
     Object.keys(transactionsObject).map((key, index) => {
@@ -39,6 +39,7 @@ async function trackCoinpayments(mock) {
         }
     } catch(err) {
         console.log(err);
+        success = false;
     }
 
     if(Object.keys(transactionsObject).length > 0) {
@@ -51,12 +52,15 @@ async function trackCoinpayments(mock) {
     } else {
         return null;
     }
+
+    return Promise.resolve(success);
 }
 
 /**
  * Track all payments for Stellar account
  */
 async function trackStellarPayments(transactionsEnvelopes) {
+    let success = true;
     // Filter for payments
     // 1: Operation == Payment
     // 2: Payment to Stellar receiver account
@@ -68,6 +72,7 @@ async function trackStellarPayments(transactionsEnvelopes) {
             envelope._attributes.tx._attributes.operations[0]._attributes.body._value._attributes.asset._switch.name === 'assetTypeNative'
         );
     } catch (err) {
+        success = false;
         console.log(err);
     }
 
@@ -108,6 +113,8 @@ async function trackStellarPayments(transactionsEnvelopes) {
             }
         }
     }
+
+    return Promise.resolve(success);
 }
 
 /**
@@ -281,7 +288,7 @@ function testCoinPayments() {
                 console.log('Test 3 for not completed status object failed');
                 error = true;
             }            
-        })
+        }) 
 
         .then(() => Lock.releaseLock(serviceName))
         .then(() => model.closeDb())
@@ -305,4 +312,4 @@ function testCoinPayments() {
  * Then test StellarPayments functionality after delay of 5 seconds
  */
 testCoinPayments();
-setTimeout(testStellarPayments, process.env.TIMEOUT);
+setTimeout(testStellarPayments, 15000);
