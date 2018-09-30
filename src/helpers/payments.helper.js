@@ -2,7 +2,7 @@ const Stellar = require('stellar-sdk');
 const model = require('everlife-token-sale-model');
 
 const { Lock, User, Payment } = model;
-const serviceName = "myTokenSaleService";
+const serviceName = "paymentScanner";
 
 /**
  * Helper for formatting Coinpayment responses to Mongoose Payment objects

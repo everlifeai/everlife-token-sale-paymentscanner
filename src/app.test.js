@@ -8,7 +8,7 @@ const coinPaymentsMock = require('./mocks/coinpayments.mock');
 const stellarMock = require('./mocks/stellar.mock');
 
 const { Lock, User, Payment } = model;
-const serviceName = "myTokenSaleService";
+const serviceName = "paymentScanner";
 
 /**
  * Track all payments for CoinPayments API

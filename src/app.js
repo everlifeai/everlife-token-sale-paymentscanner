@@ -8,7 +8,7 @@ const coinPaymentsHelper = require( './helpers/coinpayments.helper');
 const stellarPaymentsHelper = require('./helpers/stellarPayments.helper');
 
 const { Lock, User, Payment } = model;
-const serviceName = "myTokenSaleService";
+const serviceName = "paymentScanner";
 
 /**
  * Track all payments for CoinPayments API
