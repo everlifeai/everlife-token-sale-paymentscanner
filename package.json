@@ -1,6 +1,6 @@
 {
-  "name": "payment-scanner-app-stellar",
-  "version": "1.9.4",
+  "name": "everlife-token-sale-paymentscanner",
+  "version": "1.9.5",
   "main": "src/app.js",
   "scripts": {
     "start": "nodemon src/app.js",
