@@ -1,4 +1,5 @@
 require('dotenv').config();
+const log = require('util').log;
 const rp = require('request-promise');
 const model = require('everlife-token-sale-model');
 
@@ -11,9 +12,10 @@ const serviceName = "paymentScanner";
  */
 const getStellarTransactions = async (sourceAccount) => {
     let address;
-    if(process.env.STELLAR_PUBLIC === "true") {
+    if(process.env.STELLAR_PUBLIC.toLowerCase() === "true") {
         address = 'https://horizon.stellar.org';
     } else {
+        log("[getStellarTransactions] Using TEST stellar network");
         address = 'https://horizon-testnet.stellar.org';
     }
 
