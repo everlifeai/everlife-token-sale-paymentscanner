@@ -15,19 +15,25 @@ const serviceName = "paymentScanner";
  */
 async function trackCoinpayments() {
     let success = true;
-    let transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
+    let transactionsObject;
+    try {
+        transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);        
+    } catch (err) {
+        console.log("Error:\nCoinPayment not found");
+        await Lock.releaseLock(serviceName)
+        await model.closeDb()
+        process.exit(-1);
+    }
 
     // Filter all pending and failed transactions
     Object.keys(transactionsObject).map((key, index) => {
-        if(transactionsObject[key].status_text != "Complete") {
+        if(transactionsObject[key].status_text != "Complete") { 
             delete transactionsObject[key]
         }
     });
 
     // filter existing transactions
     try {
-        model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
-
         let existingTransactions = await Promise.all(Object.keys(transactionsObject).map((key, index) => {
             return Payment.findOne({tx_id: key}).exec();
         }));
@@ -40,24 +46,18 @@ async function trackCoinpayments() {
                 }
             });
         }
-
-        model.closeDb();
     } catch(err) {
         console.log(err);
         success = false;
-        throw err;
+        await Lock.releaseLock(serviceName);
+        await model.closeDb();
+        process.exit(-1);
     }
 
-    try {
-        await model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
-        await Lock.acquireLock(serviceName)
-        
+    try {        
         let existingTransactions = await Promise.all(Object.keys(transactionsObject).map((key, index) => {
             return Payment.findOne({tx_id: key}).exec();
         }));
-
-        await Lock.releaseLock(serviceName)
-        await model.closeDb()
 
         existingTransactions = existingTransactions.filter(tx => tx != null);
         
@@ -71,6 +71,8 @@ async function trackCoinpayments() {
     } catch (err) {
         console.log(err);
         success = false;
+        await Lock.releaseLock(serviceName);
+        await model.closeDb();
         process.exit(-1);
     }
 
@@ -93,7 +95,7 @@ async function trackCoinpayments() {
  */
 async function trackStellarPayments() {
     let success = true;
-    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);
+    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);            
     
     // Decode transactionEnvelope XDR and add id & timestamp
     let transactionsEnvelopes = transactions._embedded.records.map(record => {
@@ -114,19 +116,12 @@ async function trackStellarPayments() {
         envelope._attributes.tx._attributes.operations[0]._attributes.body._value._attributes.asset._switch.name === 'assetTypeNative'
     );
 
-
     // filter existing transactions
     try {
-        if(transactionsEnvelopes.length > 0) {
-            await model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
-            await Lock.acquireLock(serviceName)
-            
+        if(transactionsEnvelopes.length > 0) {            
             let existingTransactions = await Promise.all(transactionsEnvelopes.map(envelope => {
                 return Payment.findOne({tx_id: envelope.id}).exec();
             }));
-
-            await Lock.releaseLock(serviceName)
-            await model.closeDb()
 
             existingTransactions = existingTransactions.filter(tx => tx != null);
             
@@ -145,6 +140,8 @@ async function trackStellarPayments() {
     } catch (err) {
         console.log(err);
         success = false;
+        await Lock.releaseLock(serviceName)
+        await model.closeDb()
         process.exit(-1);
     }
 
@@ -166,15 +163,19 @@ async function trackStellarPayments() {
  * Starting point of application
  */
 async function start() {
+    await model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
+    await Lock.acquireLock(serviceName)
     let stellarPaymentsStatus = await trackStellarPayments();
     let coinPaymentPaymentsStatus = await trackCoinpayments();
-    // setTimeout(trackStellarPayments, process.env.TIMEOUT);
 
     if(stellarPaymentsStatus && coinPaymentPaymentsStatus) {
         console.log('\n-----\nSuccess\n-----\n');
     } else {
         console.log('\n-----\Failure\n-----\n');
     }
+
+    await Lock.releaseLock(serviceName)
+    await model.closeDb()
 }
 
 // Start scanner
