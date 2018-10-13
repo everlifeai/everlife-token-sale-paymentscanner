@@ -173,7 +173,7 @@ async function trackStellarPayments() {
  * Starting point of application
  */
 async function start() {
-    await model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
+    await model.connectDb(process.env.DB_CONNECTION_STRING, process.env.DB_NAME)
     await Lock.acquireLock(serviceName)
     let stellarPaymentsStatus = await trackStellarPayments();
     let coinPaymentPaymentsStatus = await trackCoinpayments();

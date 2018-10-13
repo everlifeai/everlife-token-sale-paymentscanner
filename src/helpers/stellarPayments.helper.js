@@ -12,7 +12,7 @@ const serviceName = "paymentScanner";
  */
 const getStellarTransactions = async (sourceAccount) => {
     let address;
-    if(process.env.STELLAR_PUBLIC.toLowerCase() === "true") {
+    if(process.env.STELLAR_TESTNET.toLowerCase() !== "true") {
         address = 'https://horizon.stellar.org';
     } else {
         log("[getStellarTransactions] Using TEST stellar network");

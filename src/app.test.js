@@ -123,7 +123,7 @@ async function trackStellarPayments(transactionsEnvelopes) {
 function testStellarPayments() {
     let error = false;
 
-    model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
+    model.connectDb(process.env.DB_CONNECTION_STRING, process.env.DB_NAME)
         .then(() => Lock.acquireLock(serviceName))
 
         // Test 1. Duplicate
@@ -236,7 +236,7 @@ function testStellarPayments() {
 function testCoinPayments() {
     let error = false;
 
-    model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
+    model.connectDb(process.env.DB_CONNECTION_STRING, process.env.DB_NAME)
         .then(() => Lock.acquireLock(serviceName))
 
         // Test 1. Empty

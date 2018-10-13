@@ -16,13 +16,13 @@ Start app with node: `npm run serve` (node src/app)
 
 `COINPAYMENT_SECRET=<secret-key>`
 
-`MONGO_DB_URL=<mongo-connection-uri>`
+`DB_CONNECTION_STRING=<mongo-connection-uri>`
 
-`MONGO_COLLECTION=<collection-name-mongo>`
+`DB_NAME=<collection-name-mongo>`
 
 `STELLAR_SRC_ACC=<source-acc>` Account that receives all Stellar XLM payments
 
-`STELLAR_PUBLIC=<true OR false>` Whether to use public (true) or test (false) network
+`STELLAR_TESTNET=<true OR false>` Whether to use test network (true) or public (false) network
 
 
 Created by Michiel Mulders.
