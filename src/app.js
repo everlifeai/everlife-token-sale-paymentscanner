@@ -1,4 +1,5 @@
 require('dotenv').config();
+const log = require('util').log;
 const Stellar = require('stellar-sdk');
 const mongoose = require('mongoose');
 const model = require('everlife-token-sale-model');
@@ -17,7 +18,7 @@ async function trackCoinpayments() {
     let success = true;
     let transactionsObject;
     try {
-        transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);        
+        transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
     } catch (err) {
         console.log("Error:\nCoinPayment not found");
         await Lock.releaseLock(serviceName)
@@ -27,7 +28,7 @@ async function trackCoinpayments() {
 
     // Filter all pending and failed transactions
     Object.keys(transactionsObject).map((key, index) => {
-        if(transactionsObject[key].status_text != "Complete") { 
+        if(transactionsObject[key].status_text != "Complete") {
             delete transactionsObject[key]
         }
     });
@@ -47,14 +48,14 @@ async function trackCoinpayments() {
             });
         }
     } catch(err) {
-        console.log(err);
+        log(err);
         success = false;
         await Lock.releaseLock(serviceName);
         await model.closeDb();
         process.exit(-1);
     }
 
-    try {        
+    try {
         let existingTransactions = await Promise.all(Object.keys(transactionsObject).map((key, index) => {
             return Payment.findOne({tx_id: key}).exec();
         }));
@@ -69,7 +70,7 @@ async function trackCoinpayments() {
             });
         }
     } catch (err) {
-        console.log(err);
+        log(err);
         success = false;
         await Lock.releaseLock(serviceName);
         await model.closeDb();
@@ -78,7 +79,8 @@ async function trackCoinpayments() {
 
     if(Object.keys(transactionsObject).length > 0) {
         let payments = paymentsHelper.formatPaymentForCoinPayments(transactionsObject);
-        
+
+
         // Save payments to MongoDB    
         let status = await paymentsHelper.savePayments(payments);
         if(!status) {
@@ -95,7 +97,7 @@ async function trackCoinpayments() {
  */
 async function trackStellarPayments() {
     let success = true;
-    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);            
+    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);
     
     // Decode transactionEnvelope XDR and add id & timestamp
     let transactionsEnvelopes = transactions._embedded.records.map(record => {
@@ -105,6 +107,9 @@ async function trackStellarPayments() {
 
         return result; 
     });
+
+
+    log(`[trackStellarPayments] inspecting ${transactionsEnvelopes.length} transactions`);
 
     // Filter for payments
     // 1: Operation == Payment
@@ -116,9 +121,12 @@ async function trackStellarPayments() {
         envelope._attributes.tx._attributes.operations[0]._attributes.body._value._attributes.asset._switch.name === 'assetTypeNative'
     );
 
+
+    log(`[trackStellarPayments] processing ${transactionsEnvelopes.length} payment transactions`);
+
     // filter existing transactions
     try {
-        if(transactionsEnvelopes.length > 0) {            
+        if(transactionsEnvelopes.length > 0) {
             let existingTransactions = await Promise.all(transactionsEnvelopes.map(envelope => {
                 return Payment.findOne({tx_id: envelope.id}).exec();
             }));
@@ -138,12 +146,14 @@ async function trackStellarPayments() {
             }
         }
     } catch (err) {
-        console.log(err);
+        log(err);
         success = false;
         await Lock.releaseLock(serviceName)
         await model.closeDb()
         process.exit(-1);
     }
+
+    log(`[trackStellarPayments] saving ${transactionsEnvelopes.length} new payments to database`);
 
     // Create payment objects
     if(transactionsEnvelopes.length > 0) {
@@ -163,15 +173,15 @@ async function trackStellarPayments() {
  * Starting point of application
  */
 async function start() {
-    await model.connectDb(process.env.MONGO_DB_URL, process.env.MONGO_COLLECTION)
+    await model.connectDb(process.env.DB_CONNECTION_STRING, process.env.DB_NAME)
     await Lock.acquireLock(serviceName)
     let stellarPaymentsStatus = await trackStellarPayments();
     let coinPaymentPaymentsStatus = await trackCoinpayments();
 
     if(stellarPaymentsStatus && coinPaymentPaymentsStatus) {
-        console.log('\n-----\nSuccess\n-----\n');
+        log('-----Success-----');
     } else {
-        console.log('\n-----\Failure\n-----\n');
+        log('-----Failure-----');
     }
 
     await Lock.releaseLock(serviceName)
