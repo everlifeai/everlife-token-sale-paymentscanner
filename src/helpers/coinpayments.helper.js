@@ -1,4 +1,7 @@
+require('dotenv').config();
+const log = require('util').log;
 const Coinpayments = require('coinpayments');
+let txCounter = 0;
 
 /**
  * Helper for retrieving all CoinPayment transactions
@@ -6,19 +9,30 @@ const Coinpayments = require('coinpayments');
  * @param {string} secret secret key for CoinPayment API
  * @param {CoinPaymentObject} transactionsObject contains all keys and transaction data from CoinPayments
  */
-const getCoinPaymentTransactions = async (key, secret) => {
-    const options =  {
-        key,
-        secret
+const getMoreCoinPaymentTransactions = async (key, secret) => {
+    const client = new Coinpayments({key, secret});
+    const txList = await client.getTxList({
+        start: txCounter,
+        limit: 100
+    });
+    txCounter += txList.length;
+    return txList.length > 0 ? client.getTxMulti(txList) : {};
+};
+
+async function processAllTransactionInBatches() {
+    let moreTxs = true;
+    let transactionObject = {};
+    while (moreTxs) {
+        let txs = await getMoreCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
+        
+        // Append new transactions to object
+        transactionObject = {...txs, ...transactionObject}
+        moreTxs = Object.keys(txs).length > 0;
     }
 
-    var client = new Coinpayments(options); 
-
-    const txList = await client.getTxList();
-
-    return client.getTxMulti(txList);
+    return Promise.resolve(transactionObject);
 }
 
 module.exports = {
-    getCoinPaymentTransactions
+    processAllTransactionInBatches
 }

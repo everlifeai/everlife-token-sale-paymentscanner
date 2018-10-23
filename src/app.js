@@ -18,9 +18,10 @@ async function trackCoinpayments() {
     let success = true;
     let transactionsObject;
     try {
-        transactionsObject = await coinPaymentsHelper.getCoinPaymentTransactions(process.env.COINPAYMENT_KEY, process.env.COINPAYMENT_SECRET);
+        transactionsObject = await coinPaymentsHelper.processAllTransactionInBatches();
+        log(`[trackCoinPayments] inspecting ${Object.keys(transactionsObject).length} transactions`);
     } catch (err) {
-        console.log("Error:\nCoinPayment not found");
+        console.log("Error: CoinPayment not found");
         await Lock.releaseLock(serviceName)
         await model.closeDb()
         process.exit(-1);
@@ -28,10 +29,12 @@ async function trackCoinpayments() {
 
     // Filter all pending and failed transactions
     Object.keys(transactionsObject).map((key, index) => {
-        if(transactionsObject[key].status_text != "Complete") {
+        if(transactionsObject[key].status_text != "Complete") { 
             delete transactionsObject[key]
         }
     });
+
+    log(`[trackCoinPayments] processing ${Object.keys(transactionsObject).length} transactions`)
 
     // filter existing transactions
     try {
@@ -62,6 +65,8 @@ async function trackCoinpayments() {
 
         existingTransactions = existingTransactions.filter(tx => tx != null);
         
+        log(`[trackCoinPayments] saving ${existingTransactions.length} new payments to database`)
+
         if(existingTransactions.length > 0) {
             existingTransactions.map(tx => { 
                 if(tx.tx_id in transactionsObject)  {
@@ -97,7 +102,7 @@ async function trackCoinpayments() {
  */
 async function trackStellarPayments() {
     let success = true;
-    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);
+    let transactions = await stellarPaymentsHelper.getStellarTransactions(process.env.STELLAR_SRC_ACC);            
     
     // Decode transactionEnvelope XDR and add id & timestamp
     let transactionsEnvelopes = transactions._embedded.records.map(record => {
