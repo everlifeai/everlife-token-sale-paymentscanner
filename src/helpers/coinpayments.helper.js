@@ -13,7 +13,7 @@ const getMoreCoinPaymentTransactions = async (key, secret) => {
     const client = new Coinpayments({key, secret});
     const txList = await client.getTxList({
         start: txCounter,
-        limit: 100
+        limit: 25
     });
     txCounter += txList.length;
     return txList.length > 0 ? client.getTxMulti(txList) : {};

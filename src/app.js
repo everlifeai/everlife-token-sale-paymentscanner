@@ -1,7 +1,6 @@
 require('dotenv').config();
 const log = require('util').log;
 const Stellar = require('stellar-sdk');
-const mongoose = require('mongoose');
 const model = require('everlife-token-sale-model');
 
 const paymentsHelper = require('./helpers/payments.helper');
@@ -21,7 +20,7 @@ async function trackCoinpayments() {
         transactionsObject = await coinPaymentsHelper.processAllTransactionInBatches();
         log(`[trackCoinPayments] inspecting ${Object.keys(transactionsObject).length} transactions`);
     } catch (err) {
-        console.log("Error: CoinPayment not found");
+        console.log("Error when accessing CoinPayments API: ", err);
         await Lock.releaseLock(serviceName)
         await model.closeDb()
         process.exit(-1);
@@ -64,8 +63,6 @@ async function trackCoinpayments() {
         }));
 
         existingTransactions = existingTransactions.filter(tx => tx != null);
-        
-        log(`[trackCoinPayments] saving ${existingTransactions.length} new payments to database`)
 
         if(existingTransactions.length > 0) {
             existingTransactions.map(tx => { 
@@ -82,6 +79,7 @@ async function trackCoinpayments() {
         process.exit(-1);
     }
 
+    log(`[trackCoinPayments] saving ${Object.keys(transactionsObject).length} new payments to database`);
     if(Object.keys(transactionsObject).length > 0) {
         let payments = paymentsHelper.formatPaymentForCoinPayments(transactionsObject);
 
@@ -114,7 +112,7 @@ async function trackStellarPayments() {
     });
 
 
-    log(`[trackStellarPayments] inspecting ${transactionsEnvelopes.length} transactions`);
+    log(`[trackStellarPayments] inspecting ${transactionsEnvelopes.length} transactions on account ${process.env.STELLAR_SRC_ACC}`);
 
     // Filter for payments
     // 1: Operation == Payment

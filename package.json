@@ -1,6 +1,6 @@
 {
   "name": "everlife-token-sale-paymentscanner",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "main": "src/app.js",
   "scripts": {
     "start": "nodemon src/app.js",
@@ -15,7 +15,7 @@
   "dependencies": {
     "coinpayments": "^2.0.0",
     "dotenv": "^6.0.0",
-    "everlife-token-sale-model": "everlifeai/everlife-token-sale-model",
+    "everlife-token-sale-model": "everlifeai/everlife-token-sale-model#master",
     "mongoose": "^5.2.17",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
