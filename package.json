@@ -1,6 +1,6 @@
 {
   "name": "everlife-token-sale-paymentscanner",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "main": "src/app.js",
   "scripts": {
     "start": "nodemon src/app.js",
@@ -10,7 +10,7 @@
   "author": "Michiel Mulders",
   "license": "MIT",
   "devDependencies": {
-    "nodemon": "^1.14.8"
+    "nodemon": "^1.18.7"
   },
   "dependencies": {
     "coinpayments": "^2.0.0",
